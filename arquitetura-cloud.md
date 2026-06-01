@@ -81,6 +81,614 @@ A plataforma foi concebida para atender aos seguintes objetivos:
 
 ---
 
+# Infraestrutura Google Cloud Platform (GCP)
+
+## Visão Geral
+
+A plataforma será executada integralmente na Google Cloud Platform (GCP), utilizando serviços gerenciados para reduzir a complexidade operacional, aumentar a escalabilidade e garantir alta disponibilidade.
+
+A arquitetura foi desenhada para suportar desde a fase piloto com dezenas de câmeras até ambientes corporativos com mais de 5.000 câmeras simultâneas, sem necessidade de mudanças estruturais.
+
+### Princípios da Arquitetura
+
+* Cloud Native
+* Event Driven Architecture
+* Microsserviços
+* MLOps
+* Segurança por Design
+* Escalabilidade Horizontal
+* Alta Disponibilidade
+* Observabilidade Completa
+
+---
+
+## Arquitetura GCP
+
+```text
+Internet
+    │
+    ▼
+Cloud Load Balancer
+    │
+    ▼
+API Gateway
+    │
+    ▼
+Cloud Run
+    │
+    ├── Auth Service
+    ├── User Service
+    ├── Occurrence Service
+    ├── Evidence Service
+    ├── Analytics Service
+    └── Integration Service
+
+    │
+    ├── Cloud SQL
+    ├── BigQuery
+    ├── Cloud Storage
+    └── Pub/Sub
+
+IA
+│
+└── Vertex AI
+```
+
+---
+
+# Cloud Load Balancer
+
+## Objetivo
+
+Distribuir o tráfego entre os serviços da plataforma.
+
+## Responsabilidades
+
+* Balanceamento global
+* Encerramento TLS
+* Alta disponibilidade
+* Distribuição automática de carga
+* Failover transparente
+
+## Benefícios
+
+* Redução de indisponibilidade
+* Melhor experiência para usuários
+* Escalabilidade horizontal automática
+
+---
+
+# API Gateway
+
+## Objetivo
+
+Centralizar todo o acesso às APIs da plataforma.
+
+## Responsabilidades
+
+### Segurança
+
+* Autenticação
+* Autorização
+* Validação de tokens
+
+### Governança
+
+* Versionamento de APIs
+* Controle de consumo
+* Rate Limiting
+
+### Observabilidade
+
+* Logs de acesso
+* Métricas de utilização
+* Auditoria
+
+## Benefícios
+
+Evita exposição direta dos microserviços e simplifica a governança da plataforma.
+
+---
+
+# Cloud Run
+
+## Objetivo
+
+Executar todos os microserviços da aplicação.
+
+## Serviços Hospedados
+
+### Auth Service
+
+Responsável por:
+
+* Login
+* JWT
+* OAuth2
+* Sessões
+
+### User Service
+
+Responsável por:
+
+* Usuários
+* Perfis
+* Permissões
+
+### Occurrence Service
+
+Responsável por:
+
+* Ocorrências
+* Workflow
+* SLA
+
+### Evidence Service
+
+Responsável por:
+
+* Evidências
+* Imagens
+* Vídeos
+
+### Analytics Service
+
+Responsável por:
+
+* KPIs
+* Dashboards
+* Relatórios
+
+### Integration Service
+
+Responsável por:
+
+* SAP
+* ERP
+* APIs externas
+
+## Por que Cloud Run?
+
+### Escalabilidade Automática
+
+Escala automaticamente conforme a demanda.
+
+### Operação Simplificada
+
+Não exige administração de clusters Kubernetes.
+
+### Pagamento por Uso
+
+Custos proporcionais à utilização.
+
+### Deploy Simplificado
+
+Integração nativa com CI/CD.
+
+---
+
+# Cloud SQL (PostgreSQL)
+
+## Objetivo
+
+Banco de dados transacional principal da plataforma.
+
+## Dados Armazenados
+
+### Cadastros
+
+* Usuários
+* Perfis
+* Obras
+* Contratos
+* Empreiteiras
+
+### Operação
+
+* Ocorrências
+* Workflow
+* Tratativas
+* SLA
+
+### Auditoria
+
+* Histórico de alterações
+* Logs operacionais
+
+## Benefícios
+
+### Consistência
+
+Garantias ACID para dados críticos.
+
+### Relacionamentos
+
+Ideal para entidades fortemente relacionadas.
+
+### Alta Disponibilidade
+
+Replicação automática e backups gerenciados.
+
+---
+
+# BigQuery
+
+## Objetivo
+
+Analytics corporativo e Business Intelligence.
+
+## Casos de Uso
+
+### Indicadores Operacionais
+
+* Eventos por obra
+* Eventos por empreiteira
+* Tempo médio de resolução
+
+### Indicadores Corporativos
+
+* Ranking de conformidade
+* Evolução histórica
+* Tendências de risco
+
+### Auditoria
+
+* Consultas históricas
+* Relatórios gerenciais
+
+## Benefícios
+
+Permite analisar milhões de registros sem impactar o ambiente operacional.
+
+---
+
+# Cloud Storage
+
+## Objetivo
+
+Armazenar evidências da plataforma.
+
+## Conteúdo Armazenado
+
+### Imagens
+
+Frames capturados pelos modelos de IA.
+
+### Vídeos
+
+Trechos associados às ocorrências.
+
+### Documentos
+
+Relatórios
+Exportações
+Arquivos gerados pela plataforma
+
+---
+
+## Estratégia de Armazenamento
+
+### Hot Storage
+
+Período:
+
+```text
+0 a 90 dias
+```
+
+Utilizado para dados acessados frequentemente.
+
+---
+
+### Cold Storage
+
+Período:
+
+```text
+90 dias até 5 anos
+```
+
+Utilizado para retenção de longo prazo.
+
+---
+
+### Archive Storage
+
+Período:
+
+```text
+Acima de 5 anos
+```
+
+Menor custo possível para retenção histórica.
+
+---
+
+## Lifecycle Management
+
+Movimenta automaticamente os arquivos entre as camadas de armazenamento.
+
+```text
+Hot
+ ↓
+Cold
+ ↓
+Archive
+```
+
+---
+
+# Pub/Sub
+
+## Objetivo
+
+Implementar comunicação assíncrona entre os componentes.
+
+## Fluxo
+
+```text
+IA
+ ↓
+Pub/Sub
+ ↓
+Workflow
+ ↓
+Notificações
+ ↓
+Analytics
+```
+
+## Benefícios
+
+### Desacoplamento
+
+Serviços não dependem diretamente uns dos outros.
+
+### Escalabilidade
+
+Novos consumidores podem ser adicionados sem alterar os produtores.
+
+### Resiliência
+
+Mensagens permanecem disponíveis mesmo em falhas temporárias.
+
+---
+
+# Vertex AI
+
+## Objetivo
+
+Gerenciar todo ciclo de vida dos modelos de Inteligência Artificial.
+
+## Responsabilidades
+
+### Treinamento
+
+Criação e evolução dos modelos.
+
+### Deploy
+
+Publicação dos modelos em produção.
+
+### Versionamento
+
+Controle de versões e rollback.
+
+### Monitoramento
+
+Acompanhamento de acurácia.
+
+### Re-treinamento
+
+Evolução contínua baseada em novos dados.
+
+---
+
+## Modelos Utilizados
+
+### SST
+
+* Capacete
+* Luvas
+* Óculos
+* Botas
+* Uniforme
+
+### Segurança Operacional
+
+* Homem x Máquina
+* Área Restrita
+* Near Miss
+
+### Escavação
+
+* Profundidade
+* Escoramento
+* Isolamento
+
+---
+
+# Cloud Monitoring
+
+## Objetivo
+
+Monitorar toda a infraestrutura.
+
+## Métricas
+
+### Aplicação
+
+* Latência
+* Throughput
+* Taxa de erro
+
+### Infraestrutura
+
+* CPU
+* Memória
+* Rede
+
+### IA
+
+* Tempo de inferência
+* Acurácia
+* Taxa de detecção
+
+---
+
+# Cloud Logging
+
+## Objetivo
+
+Centralizar logs da plataforma.
+
+## Registros
+
+### Aplicação
+
+Logs dos microserviços.
+
+### Segurança
+
+Autenticações e acessos.
+
+### Auditoria
+
+Ações realizadas pelos usuários.
+
+### IA
+
+Resultados das inferências.
+
+---
+
+# Secret Manager
+
+## Objetivo
+
+Gerenciar credenciais da plataforma.
+
+## Exemplos
+
+* Credenciais SAP
+* Chaves JWT
+* Senhas de banco
+* Tokens de APIs externas
+
+## Benefícios
+
+Nenhuma credencial é armazenada no código-fonte.
+
+---
+
+# Cloud KMS
+
+## Objetivo
+
+Gerenciar criptografia corporativa.
+
+## Utilização
+
+### Dados
+
+* Cloud SQL
+* Cloud Storage
+* Backups
+
+### Compliance
+
+* LGPD
+* Auditorias
+* Políticas corporativas
+
+---
+
+# Estratégia de Escalabilidade
+
+## Fase Piloto
+
+```text
+50 câmeras
+```
+
+Infraestrutura mínima utilizando Cloud Run, Cloud SQL e Vertex AI.
+
+---
+
+## Expansão
+
+```text
+500 câmeras
+```
+
+Escalabilidade automática dos serviços.
+
+---
+
+## Produção
+
+```text
+1.750 câmeras
+```
+
+Múltiplas instâncias de inferência executando paralelamente.
+
+---
+
+## Escala Máxima
+
+```text
+5.000+ câmeras
+```
+
+Sem mudança arquitetural.
+
+Apenas ampliação horizontal dos recursos computacionais.
+
+---
+
+# Estratégia de Segurança
+
+## Controle de Acesso
+
+* IAM
+* RBAC
+
+## Comunicação
+
+* HTTPS
+* TLS 1.2+
+
+## Dados
+
+* Criptografia em repouso
+* Criptografia em trânsito
+
+## Auditoria
+
+* Logs imutáveis
+* Rastreabilidade completa
+
+## LGPD
+
+* Controle de acesso
+* Retenção configurável
+* Histórico auditável
+
+---
+
+# Benefícios da Arquitetura GCP
+
+* Infraestrutura totalmente gerenciada
+* Menor custo operacional
+* Escalabilidade automática
+* Alta disponibilidade
+* Integração nativa com IA
+* Segurança corporativa
+* Facilidade de auditoria
+* Preparada para milhares de câmeras simultâneas
+* Evolução contínua sem mudança arquitetural
+
 # Camada 1 – Fontes de Vídeo
 
 ## Objetivo
