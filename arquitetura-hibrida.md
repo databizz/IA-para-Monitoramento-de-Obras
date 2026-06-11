@@ -26,253 +26,164 @@
 
 Esta arquitetura foi concebida para suportar uma plataforma de monitoramento inteligente de obras baseada em Inteligência Artificial, Visão Computacional e Edge Computing.
 
-O principal objetivo da solução é permitir a identificação automática de riscos, não conformidades e eventos operacionais críticos em tempo real, garantindo continuidade operacional mesmo em cenários com baixa conectividade ou ausência total de internet.
-
-Diferentemente de arquiteturas puramente cloud, a solução proposta distribui responsabilidades entre a nuvem e equipamentos instalados localmente nas obras, reduzindo latência e aumentando a disponibilidade.
+O objetivo da solução é identificar automaticamente riscos operacionais e não conformidades relacionadas ao uso de EPIs e presença de pessoas em áreas de risco, garantindo baixa latência e operação contínua mesmo sem internet.
 
 ---
 
 # 2. Motivação da Arquitetura Híbrida
 
-Uma arquitetura exclusivamente baseada em nuvem apresenta limitações importantes em ambientes de infraestrutura crítica.
+Em ambientes críticos, depender exclusivamente da nuvem pode representar riscos operacionais.
 
-Fluxo tradicional:
+Problemas comuns:
 
-Câmera → Internet → Cloud → IA → Alerta
+- Internet instável
+- Ambientes remotos
+- Obras subterrâneas
+- Latência elevada
+- Interrupções temporárias de conectividade
 
-Problemas:
-
-* Dependência da internet
-* Latência variável
-* Risco de indisponibilidade
-* Falhas de operadoras móveis
-* Ambientes subterrâneos ou remotos
-
-Para resolver esse problema foi adotado o conceito de Edge Computing.
-
-Fluxo híbrido:
-
-Câmera → IA Local → Alerta Local → Sincronização Cloud
-
-Neste modelo a operação continua funcionando mesmo sem conexão com a internet.
+Por esse motivo a arquitetura foi dividida entre Edge e Cloud.
 
 ---
 
 # 3. Visão Geral da Solução
 
-A solução é composta por duas camadas complementares.
+A solução possui duas camadas complementares:
 
-## Edge Layer
+## Edge
 
-Executa:
+- Captura de vídeo
+- Inferência local
+- Alertas locais
+- Banco local
+- Operação offline
 
-* Captura de vídeo
-* Inferência de IA
-* Alertas
-* Banco local
-* Armazenamento local
-* Operação offline
+## Cloud
 
-## Cloud Layer
-
-Executa:
-
-* Gestão da plataforma
-* Dashboards
-* Analytics
-* Auditoria
-* Armazenamento permanente
-* Treinamento dos modelos
+- Dashboards
+- Analytics
+- Auditoria
+- Gestão de usuários
+- Armazenamento permanente
+- Treinamento dos modelos
 
 ---
 
 # 4. Arquitetura de Alto Nível
 
-```text
-                 GOOGLE CLOUD
+EDGE
 
- Portal SaaS
- Dashboards
- Analytics
- Auditoria
- BigQuery
- Cloud SQL
- Cloud Storage
- Vertex AI
+Câmeras
+↓
+Video Gateway
+↓
+IA Local
+↓
+Alertas
+↓
+Banco Local
+↓
+Sync Agent
 
-        ▲
-        │
-   Sincronização
-        │
-        ▼
+⇅
 
-==================================
+CLOUD
 
-               EDGE
-
-       Edge Gateway
-            │
-            ├── Video Gateway
-            ├── IA SST
-            ├── IA Operacional
-            ├── IA Engenharia
-            ├── Banco Local
-            ├── Alert Service
-            └── Sync Agent
-
-            ▲
-            │
-         Câmeras
-```
+Cloud Run
+Cloud SQL
+BigQuery
+Cloud Storage
+Vertex AI
+Portal SaaS
 
 ---
 
 # 5. Camada Edge (On-Premise)
 
-A camada Edge é responsável pela operação crítica em tempo real.
-
 ## Edge Gateway
 
-Equipamento responsável por executar todos os serviços locais.
+Hardware sugerido:
 
-Possíveis hardwares:
-
-* NVIDIA Jetson Orin
-* Intel NUC Industrial
-* Dell Edge Gateway
-* Servidor industrial
+- NVIDIA Jetson Orin
+- Intel NUC
+- Dell Edge Gateway
+- Servidor Industrial
 
 Responsabilidades:
 
-* Receber streams de vídeo
-* Executar modelos de IA
-* Armazenar eventos
-* Gerar alertas
-* Sincronizar com a nuvem
+- Receber streams
+- Executar IA
+- Armazenar eventos
+- Gerar alertas
+- Sincronizar dados
 
 ## Video Gateway
 
 Tecnologias:
 
-* MediaMTX
-* GStreamer
-
-Responsável por:
-
-* Receber RTSP
-* Receber ONVIF
-* Distribuir frames para os modelos
+- MediaMTX
+- GStreamer
 
 ## Banco Local
 
-Tecnologia:
+Tecnologias:
 
-* PostgreSQL
-
-Armazena:
-
-* Eventos
-* Alertas
-* Logs
-* Evidências
+- SQLite
+- PostgreSQL
 
 ## Alert Service
 
-Responsável pelos alertas locais.
+Alertas locais:
 
-Exemplos:
-
-* Sirene
-* Giroflex
-* Painel LED
-* Totem sonoro
+- Sirene
+- Giroflex
+- Painel LED
 
 ## Sync Agent
 
-Responsável por sincronizar os dados locais com a nuvem quando houver conectividade.
+Sincroniza dados quando houver conectividade.
 
 ---
 
 # 6. Domínios de Inteligência Artificial
 
-A solução é dividida em domínios especializados.
-
-## IA de Conformidade SST
-
-Responsável por verificar conformidade com normas de Segurança e Saúde no Trabalho.
+## MVP – IA de Conformidade de EPIs
 
 Detecta:
 
-* Capacete
-* Óculos
-* Luvas
-* Botas
-* Uniforme
-* Colete refletivo
-* Máscaras
-* Trabalho em altura
+- Capacete
+- Colete refletivo
+- Uniforme
+- Botas de segurança
 
 Benefícios:
 
-* Fiscalização contínua
-* Evidências automáticas
-* Redução de acidentes
+- Fiscalização contínua
+- Evidências automáticas
+- Redução de acidentes
 
-## IA de Segurança Operacional
-
-Responsável por identificar situações de risco operacional.
+## MVP – IA de Pessoas em Áreas de Risco
 
 Detecta:
 
-* Homem x Máquina
-* Near Miss
-* Áreas restritas
-* Permanência indevida
+- Entrada em área restrita
+- Permanência em área de risco
+- Aproximação indevida de equipamentos
 
 Benefícios:
 
-* Redução de acidentes graves
-* Resposta rápida
-* Monitoramento contínuo
+- Resposta rápida
+- Monitoramento contínuo
+- Redução de acidentes
 
-## IA de Engenharia e Estruturas
+## Evolução Futura
 
-Responsável pelo monitoramento técnico da obra.
-
-Detecta:
-
-* Escavações
-* Profundidade
-* Escoramentos
-* Estabilidade
-* Isolamentos
-
-Integração opcional:
-
-* LiDAR
-* Sensores 3D
-
-Benefícios:
-
-* Redução de risco de soterramento
-* Controle técnico automatizado
-
-## IA de Qualidade e Execução (Roadmap)
-
-Aplicações futuras:
-
-* Pavimentação
-* Concretagem
-* Montagens
-* Acabamentos
-
-## IA de Produtividade e Operação (Roadmap)
-
-Aplicações futuras:
-
-* Produtividade de equipes
-* Utilização de equipamentos
-* Avanço físico da obra
+- Homem x Máquina
+- Near Miss
+- Escavações
+- LiDAR
+- Qualidade
+- Produtividade
 
 ---
 
@@ -280,78 +191,60 @@ Aplicações futuras:
 
 ## Cloud Load Balancer
 
-Distribui o tráfego dos usuários.
+Distribuição de tráfego.
 
 ## API Gateway
 
-Responsável por:
-
-* Autenticação
-* Autorização
-* Auditoria
-* Rate Limiting
+- Autenticação
+- Autorização
+- Auditoria
+- Rate limiting
 
 ## Cloud Run
 
-Executa:
+Hospeda:
 
-* Auth Service
-* User Service
-* Occurrence Service
-* Evidence Service
-* Analytics Service
-* Integration Service
+- Auth Service
+- User Service
+- Occurrence Service
+- Evidence Service
+- Analytics Service
+- Integration Service
 
 ## Cloud SQL
 
-Fonte oficial da operação.
+Banco operacional principal.
 
 Armazena:
 
-* Obras
-* Contratos
-* Usuários
-* Ocorrências
+- Usuários
+- Obras
+- Contratos
+- Ocorrências
 
 ## BigQuery
 
-Responsável por:
-
-* KPIs
-* Dashboards
-* Relatórios
-* Analytics
+Analytics corporativo.
 
 ## Cloud Storage
 
 Armazena:
 
-* Imagens
-* Vídeos
-* Evidências
-
-Camadas:
-
-* Hot
-* Cold
-* Archive
+- Fotos
+- Vídeos
+- Evidências
 
 ## Pub/Sub
 
-Comunicação assíncrona entre os serviços.
+Mensageria assíncrona.
 
 ## Vertex AI
 
-Responsável por:
-
-* Treinamento
-* Avaliação
-* Versionamento
-* Deploy
+Treinamento e gestão dos modelos.
 
 ## Model Registry
 
-Distribui modelos atualizados para os ambientes Edge.
+Distribuição de modelos para Edge.
 
 ---
 
@@ -379,27 +272,21 @@ Cloud
 
 Mesmo sem internet:
 
-* IA continua funcionando
-* Alertas continuam funcionando
-* Evidências continuam sendo armazenadas
-* Operação continua normalmente
+- IA continua funcionando
+- Alertas continuam funcionando
+- Evidências continuam armazenadas
+- Operação continua normalmente
 
 ---
 
 # 10. Estratégia de Sincronização
 
-Quando a internet falha:
-
-Eventos permanecem locais.
-
 Quando a internet retorna:
 
-Sync Agent envia:
-
-* Eventos
-* Evidências
-* Logs
-* Métricas
+- Eventos são enviados
+- Evidências são enviadas
+- Logs são enviados
+- Métricas são enviadas
 
 ---
 
@@ -407,22 +294,22 @@ Sync Agent envia:
 
 ## Edge
 
-* VPN
-* Certificados digitais
-* Criptografia local
+- VPN
+- Certificados
+- Criptografia local
 
 ## Cloud
 
-* IAM
-* RBAC
-* TLS
-* Cloud KMS
+- IAM
+- RBAC
+- TLS
+- KMS
 
 ## LGPD
 
-* Controle de acesso
-* Auditoria
-* Retenção configurável
+- Controle de acesso
+- Auditoria
+- Retenção configurável
 
 ---
 
@@ -430,70 +317,55 @@ Sync Agent envia:
 
 Ferramentas:
 
-* Cloud Monitoring
-* Cloud Logging
-* Cloud Trace
-
-Monitoramento:
-
-* Aplicação
-* Infraestrutura
-* IA
-* Integrações
+- Cloud Monitoring
+- Cloud Logging
+- Cloud Trace
 
 ---
 
 # 13. Escalabilidade
 
-Piloto:
+Piloto: 50 câmeras
 
-50 câmeras
+Fase 1: 500 câmeras
 
-Fase 1:
+Fase 2: 1.750 câmeras
 
-500 câmeras
-
-Fase 2:
-
-1.750 câmeras
-
-Produção:
-
-5.000+ câmeras
-
-A arquitetura permanece a mesma.
+Produção: 5.000+ câmeras
 
 ---
 
 # 14. Roadmap Evolutivo da IA
 
-Fase 1
+Fase 1:
 
-IA SST
+- EPIs
+- Áreas de risco
 
-Fase 2
+Fase 2:
 
-IA Segurança Operacional
+- Homem x Máquina
+- Near Miss
 
-Fase 3
+Fase 3:
 
-IA Engenharia e Estruturas
+- Escavações
+- Escoramentos
+- LiDAR
 
-Fase 4
+Fase 4:
 
-IA Qualidade
+- Qualidade
 
-Fase 5
+Fase 5:
 
-IA Produtividade
+- Produtividade
 
 ---
 
 # 15. Fluxo Completo de uma Ocorrência
 
 Câmera
-↓
-Video Gateway
 ↓
 IA Local
 ↓
@@ -517,21 +389,15 @@ Auditoria
 
 # 16. Benefícios da Arquitetura
 
-* Operação offline
-* Baixa latência
-* Alta disponibilidade
-* Escalabilidade horizontal
-* Governança centralizada
-* Analytics corporativo
-* Atualização remota dos modelos
-* Segurança corporativa
+- Operação offline
+- Baixa latência
+- Alta disponibilidade
+- Escalabilidade horizontal
+- Governança centralizada
+- Analytics corporativo
 
 ---
 
 # 17. Conclusão
 
-A arquitetura híbrida combina Edge Computing e Cloud Computing para fornecer uma solução resiliente, escalável e adequada para ambientes críticos.
-
-A operação ocorre localmente na obra, enquanto a nuvem fornece governança, auditoria, analytics e evolução contínua dos modelos de Inteligência Artificial.
-
-Essa abordagem é especialmente adequada para obras de infraestrutura crítica, onde a segurança operacional não pode depender exclusivamente da disponibilidade da internet.
+A arquitetura híbrida combina Edge Computing e Cloud Computing para entregar uma solução resiliente, escalável e adequada para ambientes críticos, garantindo que a operação continue funcionando mesmo sem conectividade com a internet.
