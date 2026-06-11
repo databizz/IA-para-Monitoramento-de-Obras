@@ -165,9 +165,8 @@ Responsável por:
 
 ## Banco Local
 
-Tecnologias:
+Tecnologia:
 
-* SQLite
 * PostgreSQL
 
 Armazena:
